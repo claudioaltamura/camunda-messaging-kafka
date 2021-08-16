@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_19cfege" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.9.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.15.0">
+  <bpmn:process id="LoggingMessagingProcess" name="Logging &#38; Messaging Process" isExecutable="true" camunda:versionTag="1">
+    <bpmn:startEvent id="StartEvent" name="Start" camunda:asyncBefore="true">
+      <bpmn:outgoing>start2Logging</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="EndEvent" name="End">
+      <bpmn:incoming>messaging2End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="start2Logging" sourceRef="StartEvent" targetRef="LoggingActivity" />
+    <bpmn:sequenceFlow id="logging2Service" sourceRef="LoggingActivity" targetRef="SendMessageActivity" />
+    <bpmn:serviceTask id="LoggingActivity" name="Logging" camunda:class="de.claudioaltamura.camunda.delegate.LoggingDelegate">
+      <bpmn:incoming>start2Logging</bpmn:incoming>
+      <bpmn:outgoing>logging2Service</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="messaging2End" sourceRef="SendMessageActivity" targetRef="EndEvent" />
+    <bpmn:serviceTask id="SendMessageActivity" name="Sending Message" camunda:class="de.claudioaltamura.camunda.delegate.kafka.KafkaSenderDelegate">
+      <bpmn:incoming>logging2Service</bpmn:incoming>
+      <bpmn:outgoing>messaging2End</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="LoggingMessagingProcess">
+      <bpmndi:BPMNEdge id="Flow_0478poc_di" bpmnElement="logging2Service">
+        <di:waypoint x="380" y="120" />
+        <di:waypoint x="510" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1d22kr0_di" bpmnElement="start2Logging">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="280" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="198" y="102" width="73" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0o83pxt_di" bpmnElement="messaging2End">
+        <di:waypoint x="610" y="120" />
+        <di:waypoint x="722" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent">
+        <dc:Bounds x="152" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="158" y="145" width="24" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_183md3g_di" bpmnElement="LoggingActivity">
+        <dc:Bounds x="280" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rhrkgj_di" bpmnElement="EndEvent">
+        <dc:Bounds x="722" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="730" y="145" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1uuwe84_di" bpmnElement="SendMessageActivity">
+        <dc:Bounds x="510" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

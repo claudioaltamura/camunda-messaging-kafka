@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+
+  zookeeper:
+    image: quay.io/strimzi/kafka:0.23.0-kafka-2.8.0
+    command: [
+      "sh", "-c",
+      "bin/zookeeper-server-start.sh config/zookeeper.properties"
+    ]
+    ports:
+      - "2181:2181"
+    environment:
+      LOG_DIR: /tmp/logs
+
+  kafka:
+    image: quay.io/strimzi/kafka:0.23.0-kafka-2.8.0
+    command: [
+      "sh", "-c",
+      "bin/kafka-server-start.sh config/server.properties --override listeners=$${KAFKA_LISTENERS} --override advertised.listeners=$${KAFKA_ADVERTISED_LISTENERS} --override zookeeper.connect=$${KAFKA_ZOOKEEPER_CONNECT}"
+    ]
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      LOG_DIR: "/tmp/logs"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  postgres:
+    image: postgres:12.2
+    ports:
+      - "5432:5432"
+    volumes:
+      - $PWD/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=camunda
+      - POSTGRES_PASSWORD=camunda
+      - POSTGRES_DB=camunda
+      - PGDATA=/var/lib/postgresql/data/pgdata
+
+  camunda: 
+    image: camunda/camunda-bpm-platform:7.15.0
+    depends_on:
+      - kafka
+      - postgres
+    ports:
+      - "8090:8080"
+    volumes:
+      - $PWD/target/camunda-messaging-kafka-0.1.0-SNAPSHOT.war:/camunda/webapps/camunda-messaging-kafka-0.1.0-SNAPSHOT.war
+    environment:
+      - DB_DRIVER=org.postgresql.Driver
+      - DB_URL=jdbc:postgresql://postgres:5432/camunda
+      - DB_USERNAME=camunda
+      - DB_PASSWORD=camunda
+      - TZ=Europe/Berlin
+      - DEBUG=true
+      - WAIT_FOR=postgres:5432
